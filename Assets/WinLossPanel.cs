@@ -2,11 +2,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class WinLossPanel : MonoBehaviour
 {
-    public TMPro.TextMeshProUGUI winLossText;
-    public GameObject winLossPanel;
+    [SerializeField] private TMPro.TextMeshProUGUI winLossText;
+    [SerializeField] private GameObject winLossPanel;
+
+    [SerializeField] private Color winColour;
+    [SerializeField] private Color lossColour;
     private void OnEnable()
     {
         PlayerMove.OnGameWin += HandleGameWinLoss;
@@ -27,11 +31,12 @@ public class WinLossPanel : MonoBehaviour
         if (obj)
         {
             Debug.Log("You Win");
-            
+            winLossPanel.GetComponent<Image>().color = winColour;
             winLossText.text = "You Win";
         } else if(!obj)
         {
             Debug.Log("You Lose");
+            winLossPanel.GetComponent<Image>().color = lossColour;
             winLossText.text = "You Lose";
         }
 

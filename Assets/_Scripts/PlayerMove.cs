@@ -14,6 +14,8 @@ public class PlayerMove : MonoBehaviour
     private float gravityValue = -9.81f;
 
     public static event Action<bool> OnGameWin;
+    public static event Action<int> OnHealthChange;
+
 
     [SerializeField] private int health;
 
@@ -61,11 +63,10 @@ public class PlayerMove : MonoBehaviour
     public void Damage(int dmg)
     {
         health-= dmg;
-        if(health    <= 0)
+        if(health <= 0)
         {
             OnGameWin?.Invoke(false);
-            //Destroy(gameObject);
         }
-        Debug.Log("Player damaged for " + dmg + " points");
+        OnHealthChange?.Invoke(health);
     }
 }

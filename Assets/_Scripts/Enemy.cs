@@ -16,6 +16,11 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float attackTimer;
     [SerializeField] private float attackCooldown;
     [SerializeField] private bool canAttack;
+
+    [SerializeField] private float attackRange;
+    [SerializeField] private float chaseRange;
+
+    [SerializeField] private GameObject exclamtionMark;
     
     private int currentWaypoint = 0;
 
@@ -23,6 +28,7 @@ public class Enemy : MonoBehaviour
 
     private void Start()
     {
+        exclamtionMark.SetActive(false);
         canAttack = true;
         navMeshAgent = GetComponent<NavMeshAgent>();
         ChangeEnemyState(EnemyState.Patrol);
@@ -35,10 +41,12 @@ public class Enemy : MonoBehaviour
         switch(currentState)
         {
             case EnemyState.Patrol:
+                exclamtionMark.SetActive(false);
                 currentWaypoint = 0;
                 SetNextWaypoint();
                 break;
             case EnemyState.Chase:
+                exclamtionMark.SetActive(true);
                 SetTargetToChase(player);
                 break;
             case EnemyState.Attack:
@@ -92,19 +100,24 @@ public class Enemy : MonoBehaviour
         
         if(currentState == EnemyState.Chase)
         {
-            if (CalculateDistance(transform.position, currentTarget.position) <= 7.5f)
+            float distanceToTarget = CalculateDistance(transform.position, currentTarget.position);
+            if (distanceToTarget <= chaseRange && distanceToTarget >= attackRange)
             {
                 navMeshAgent.SetDestination(currentTarget.position);
             }
-            if (CalculateDistance(transform.position, player.position) <= 2f)
+            if (distanceToTarget <= attackRange)
             {
                 if(canAttack) ChangeEnemyState(EnemyState.Attack);
+            }
+            if(distanceToTarget >= chaseRange)
+            {
+                ChangeEnemyState(EnemyState.Patrol);
             }
         }
         
         if(currentState == EnemyState.Attack)
         {
-            if (CalculateDistance(transform.position, player.position) >= 2f)
+            if (CalculateDistance(transform.position, player.position) >= attackRange)
             {
                 ChangeEnemyState(EnemyState.Chase);
             }
