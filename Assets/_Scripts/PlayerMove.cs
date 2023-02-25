@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,7 +13,7 @@ public class PlayerMove : MonoBehaviour
     private float jumpHeight = 1.0f;
     private float gravityValue = -9.81f;
 
-
+    public static event Action<bool> OnGameWin;
 
     [SerializeField] private int health;
 
@@ -22,7 +23,14 @@ public class PlayerMove : MonoBehaviour
         controller = gameObject.GetComponent<CharacterController>();
         playerInput = gameObject.GetComponent<PlayerInput>();
     }
-
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "Win")
+        {
+            Debug.Log("You Win");
+            OnGameWin?.Invoke(true);
+        }
+    }
     void Update()
     {
         groundedPlayer = controller.isGrounded;
@@ -55,7 +63,8 @@ public class PlayerMove : MonoBehaviour
         health-= dmg;
         if(health    <= 0)
         {
-            Debug.Log("You dead");
+            OnGameWin?.Invoke(false);
+            //Destroy(gameObject);
         }
         Debug.Log("Player damaged for " + dmg + " points");
     }
