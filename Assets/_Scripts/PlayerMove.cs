@@ -12,8 +12,13 @@ public class PlayerMove : MonoBehaviour
     private float jumpHeight = 1.0f;
     private float gravityValue = -9.81f;
 
+
+
+    [SerializeField] private int health;
+
     private void Start()
     {
+        health = 100;
         controller = gameObject.GetComponent<CharacterController>();
         playerInput = gameObject.GetComponent<PlayerInput>();
     }
@@ -43,5 +48,15 @@ public class PlayerMove : MonoBehaviour
 
         playerVelocity.y += gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
+    }
+
+    public void Damage(int dmg)
+    {
+        health-= dmg;
+        if(health    <= 0)
+        {
+            Debug.Log("You dead");
+        }
+        Debug.Log("Player damaged for " + dmg + " points");
     }
 }

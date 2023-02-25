@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,6 +11,11 @@ public class Enemy : MonoBehaviour
     [SerializeField] private Transform player;
     [SerializeField] private float distanceToWaypoint;
     [SerializeField] private EnemyState currentState;
+
+
+    [SerializeField] private float attackTimer;
+    [SerializeField] private float attackCooldown;
+    [SerializeField] private bool canAttack;
     
     private int currentWaypoint = 0;
 
@@ -17,6 +23,7 @@ public class Enemy : MonoBehaviour
 
     private void Start()
     {
+        canAttack = true;
         navMeshAgent = GetComponent<NavMeshAgent>();
         ChangeEnemyState(EnemyState.Patrol);
     }
@@ -35,10 +42,18 @@ public class Enemy : MonoBehaviour
                 SetTargetToChase(player);
                 break;
             case EnemyState.Attack:
+                AttackPlayer();
+                ChangeEnemyState(EnemyState.Chase);
                 break;
             default:
                 break;
         }
+    }
+
+    private void AttackPlayer()
+    {
+        canAttack = false;
+        player.GetComponent<PlayerMove>().Damage(10);
     }
 
     public void SetNextWaypoint()
@@ -55,7 +70,19 @@ public class Enemy : MonoBehaviour
 
     public void Update()
     {
-        if(currentState == EnemyState.Patrol)
+
+        if (!canAttack)
+        {
+            attackTimer += Time.deltaTime;
+        }
+
+        if(attackTimer >= attackCooldown)
+        {
+            canAttack = true;
+            attackTimer = 0f;
+        }
+
+        if (currentState == EnemyState.Patrol)
         {
             if (CalculateDistance(transform.position, patrolWaypoints[currentWaypoint].position) <= 1f)
             {
@@ -65,21 +92,23 @@ public class Enemy : MonoBehaviour
         
         if(currentState == EnemyState.Chase)
         {
-            if (CalculateDistance(transform.position, currentTarget.position) <= 5f)
+            if (CalculateDistance(transform.position, currentTarget.position) <= 7.5f)
             {
                 navMeshAgent.SetDestination(currentTarget.position);
             }
-            else if (CalculateDistance(transform.position, player.position) <= 1f)
+            if (CalculateDistance(transform.position, player.position) <= 2f)
             {
-                ChangeEnemyState(EnemyState.Attack);
-            }
-            else
-            {
-                ChangeEnemyState(EnemyState.Patrol);
+                if(canAttack) ChangeEnemyState(EnemyState.Attack);
             }
         }
-
-
+        
+        if(currentState == EnemyState.Attack)
+        {
+            if (CalculateDistance(transform.position, player.position) >= 2f)
+            {
+                ChangeEnemyState(EnemyState.Chase);
+            }
+        }
     }
 
     public float CalculateDistance(Vector3 v1, Vector3 v2)
