@@ -7,6 +7,7 @@ public class Enemy : MonoBehaviour
 {
     [SerializeField] private Transform[] patrolWaypoints;
     [SerializeField] private Transform currentTarget;
+    [SerializeField] private Transform player;
     [SerializeField] private float distanceToWaypoint;
     [SerializeField] private EnemyState currentState;
     
@@ -31,6 +32,7 @@ public class Enemy : MonoBehaviour
                 SetNextWaypoint();
                 break;
             case EnemyState.Chase:
+                SetTargetToChase(player);
                 break;
             case EnemyState.Attack:
                 break;
@@ -45,24 +47,52 @@ public class Enemy : MonoBehaviour
         if (currentWaypoint >= patrolWaypoints.Length)
         {
             currentWaypoint = 0;
-            currentTarget = patrolWaypoints[currentWaypoint];
+            
         }
+        currentTarget = patrolWaypoints[currentWaypoint];
         navMeshAgent.SetDestination(patrolWaypoints[currentWaypoint].position);
     }
 
     public void Update()
     {
-        distanceToWaypoint = Vector3.Distance(transform.position, patrolWaypoints[currentWaypoint].position);
-        if (distanceToWaypoint <= 1f) 
+        if(currentState == EnemyState.Patrol)
         {
-            SetNextWaypoint();
-        } 
+            if (CalculateDistance(transform.position, patrolWaypoints[currentWaypoint].position) <= 1f)
+            {
+                SetNextWaypoint();
+            }
+        }
+        
+        if(currentState == EnemyState.Chase)
+        {
+            if (CalculateDistance(transform.position, currentTarget.position) <= 5f)
+            {
+                navMeshAgent.SetDestination(currentTarget.position);
+            }
+            else if (CalculateDistance(transform.position, player.position) <= 1f)
+            {
+                ChangeEnemyState(EnemyState.Attack);
+            }
+            else
+            {
+                ChangeEnemyState(EnemyState.Patrol);
+            }
+        }
+
+
+    }
+
+    public float CalculateDistance(Vector3 v1, Vector3 v2)
+    {
+        return Vector3.Distance(v1, v2);
     }
 
     public void SetTargetToChase(Transform targetTransform)
     {
         this.currentTarget = targetTransform;
+        navMeshAgent.SetDestination(currentTarget.position);
     }
+
 }
 
 public enum EnemyState
